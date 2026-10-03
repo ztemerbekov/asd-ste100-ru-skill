@@ -386,6 +386,17 @@ if isinstance(codex_plugin_interface, dict):
             f"defaultPrompt must hold 1-{MAX_CODEX_DEFAULT_PROMPTS} non-empty strings "
             f"of at most {MAX_CODEX_PROMPT_CHARS} characters; Codex ignores the rest",
         )
+    else:
+        # The skills are command-only: a prompt without $<skill> never starts one.
+        skill_commands = [
+            f"${path.parent.name}" for path in (ROOT / "skills").glob("*/SKILL.md")
+        ]
+        for prompt in default_prompts:
+            if not any(command in prompt for command in skill_commands):
+                fail(
+                    MANIFEST_PATHS["codex manifest"],
+                    f"defaultPrompt must invoke a skill with {' or '.join(skill_commands)}: {prompt!r}",
+                )
     for asset in (codex_logo, codex_composer_icon):
         if asset is not None:
             validate_codex_svg(asset)
