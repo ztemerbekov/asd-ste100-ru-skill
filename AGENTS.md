@@ -57,7 +57,7 @@ Single-context: one `GLOSSARY.md` and `docs/adr/` at the repo root. See `docs/ag
 - `plugin.json`, `.claude-plugin/marketplace.json`, `.agents/plugins/marketplace.json`, `.codex-plugin/plugin.json`, `.cursor-plugin/plugin.json`, `.cursor-plugin/marketplace.json`;
 - `CHANGELOG.md`.
 
-README, страница навыка и описания в манифестах — только на русском. README — витрина и каталог. Подробности — на странице навыка.
+README, страница навыка и описания в манифестах — только на русском. README — витрина навыка. Таблицы навыков в README нет: навык в репозитории один. Подробности — на странице навыка.
 
 Навык вызывается только командой. Поле `disable-model-invocation: true` в `SKILL.md` и поле `allow_implicit_invocation: false` в `agents/openai.yaml` меняйте вместе.
 
