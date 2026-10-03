@@ -151,7 +151,7 @@ for skill_dir in "${skill_dirs[@]}"; do
     fi
   done
 
-  eval_dir="${skill_dir}evals/cases"
+  eval_dir="${skill_dir}evals"
   if [[ -d "$eval_dir" ]]; then
     while IFS= read -r -d '' eval_file; do
       evals_checked=$((evals_checked + 1))
@@ -184,7 +184,7 @@ for skill_dir in "${skill_dirs[@]}"; do
           fail "$eval_file" "Missing section: ## $heading"
         fi
       done
-    done < <(find "$eval_dir" -maxdepth 1 -type f -name '*.md' -print0)
+    done < <(find "$eval_dir" -mindepth 2 -maxdepth 2 -type f -name '*.md' -print0)
   fi
 done
 

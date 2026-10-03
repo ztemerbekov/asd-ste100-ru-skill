@@ -23,14 +23,14 @@ MAX_SENTENCES = 6   # 8.2.6.2
 VIOLATION = "нарушение"
 ADVICE = "совет"
 
-FENCE = re.compile(r"^\s*(```|~~~)")
+FENCE = re.compile(r"^\s*(?P<marker>`{3,}|~{3,})(?P<info>.*)$")
 LIST_ITEM = re.compile(r"^(?P<indent>\s*)(?P<marker>[-*+]|\d+[.)])\s+(?P<body>.*)$")
 HEADING = re.compile(r"^\s{0,3}#{1,6}\s+(?P<body>.*)$")
 BLOCKQUOTE = re.compile(r"^\s*>\s?")
 TABLE_SEPARATOR_CELL = re.compile(r"^:?-{3,}:?$")
 HTML_COMMENT = re.compile(r"<!--.*?-->")
 
-INLINE_CODE = re.compile(r"`[^`]*`")
+INLINE_CODE = re.compile(r"(?<!`)(?P<ticks>`+)(?!`).*?(?<!`)(?P=ticks)(?!`)")
 LINK = re.compile(r"!?\[(?P<text>[^\]]*)\]\([^)]*\)")
 URL = re.compile(r"https?://\S+")
 QUOTED = re.compile(r"«[^«»]*»|„[^„“]*“|\"[^\"]*\"")
@@ -38,6 +38,10 @@ EMPHASIS = re.compile(r"\*+|(?<!\w)_+|_+(?!\w)")
 BRACKETS = re.compile(r"\([^()]*\)")
 SENTENCE_END = re.compile(r"[.!?…]+[\"»”’)]*\s+")
 WORD = re.compile(r"\w")
+GROUPED_NUMBER = re.compile(
+    r"(?<![\w.,])[-+]?\d{1,3}(?:[ \u00a0\u202f]\d{3})+(?:[.,]\d+)?(?!\w)")
+# Сокращения перед названием или номером документа не заканчивают предложение.
+REFERENCE_ABBREVIATIONS = {"см", "рис", "табл", "стр", "разд", "пп", "подп", "прил", "им"}
 
 # Подстановки считаются одним словом (8.2.5.1): код, путь, команда, цитата.
 CODE_TOKEN = " КОД "
@@ -82,6 +86,7 @@ def prepare(line):
 
 
 def count_words(text):
+    text = GROUPED_NUMBER.sub(lambda m: re.sub(r"[ \u00a0\u202f]", "", m.group()), text)
     return sum(1 for token in text.split() if WORD.search(token))
 
 
@@ -94,6 +99,8 @@ def split_sentences(text):
             continue
         before = text[start:m.start()].split()
         last = before[-1].strip("(«\"") if before else ""
+        if m.group(0).startswith(".") and last.lower() in REFERENCE_ABBREVIATIONS:
+            continue
         if len(last) == 1 and last.isalpha():
             continue  # инициалы и сокращения из одной буквы: «Н. Е.», «г.», «п.»
         sentence = text[start:m.end()].strip()
@@ -130,7 +137,7 @@ def parse(text):
     """Разбить Markdown на единицы проверки. Код и служебные блоки пропустить."""
     lines = text.splitlines()
     units, paragraph = [], []
-    in_fence = False
+    fence_marker = None
     index = 0
 
     def close_paragraph():
@@ -146,16 +153,24 @@ def parse(text):
 
     while index < len(lines):
         lineno, line = index + 1, lines[index]
-        if FENCE.match(line):
-            close_paragraph()
-            in_fence = not in_fence
-            index += 1
-            continue
-        if in_fence or not line.strip():
-            close_paragraph()
-            index += 1
-            continue
         line = BLOCKQUOTE.sub("", line)
+        fence = FENCE.match(line)
+        if fence_marker is not None:
+            if (fence and fence.group("marker")[0] == fence_marker[0]
+                    and len(fence.group("marker")) >= len(fence_marker)
+                    and not fence.group("info").strip()):
+                fence_marker = None
+            index += 1
+            continue
+        if fence and not (fence.group("marker")[0] == "`" and "`" in fence.group("info")):
+            close_paragraph()
+            fence_marker = fence.group("marker")
+            index += 1
+            continue
+        if not line.strip():
+            close_paragraph()
+            index += 1
+            continue
         cells = split_table_row(line)
         next_cells = split_table_row(lines[index + 1]) if index + 1 < len(lines) else None
         if cells and next_cells and all(TABLE_SEPARATOR_CELL.match(c) for c in next_cells):
@@ -229,13 +244,18 @@ def check_unit(unit, filename):
         bracketed.append((m.start(), m.group(0)[1:-1]))
         return " " * len(m.group(0))
 
-    for _ in range(3):  # вложенные скобки снимаются за несколько проходов
+    while True:  # вложенные скобки снимаются изнутри, смещения сохраняются
         joined, replaced = BRACKETS.subn(blank, joined)
         if not replaced:
             break
 
-    sentences = split_sentences(joined)
-    for offset, sentence in sentences + bracketed:
+    sentences = [(offset, sentence) for offset, sentence in split_sentences(joined)
+                 if count_words(sentence)]
+    for bracket_offset, content in bracketed:
+        sentences.extend((bracket_offset + offset, sentence)
+                         for offset, sentence in split_sentences(content)
+                         if count_words(sentence))
+    for offset, sentence in sentences:
         words = count_words(sentence)
         if words > MAX_WORDS:
             findings.append(finding(
@@ -311,6 +331,13 @@ def selftest():
     assert rules(twenty) == [], rules(twenty)
     assert rules(" ".join(["слово"] * 21) + ".") == ["длина"]
 
+    # Число с разделителями разрядов остаётся одним числовым значением.
+    for separator in (" ", "\u00a0", "\u202f"):
+        value = "1" + separator + "000" + separator + "000,50"
+        assert rules(" ".join(["слово"] * 19) + " " + value + ".") == []
+        assert rules(twenty[:-1] + " " + value + ".") == ["длина"]
+    assert count_words("1 000x") == 2  # отдельное обозначение не сливается с числом
+
     # 8.2.5.1: число, буквенно-цифровой идентификатор, аббревиатура и цитата — одно слово.
     # Код в обратных кавычках — тоже одно слово (адаптация навыка).
     one_word = " ".join(["слово"] * 15) + " `код из трёх слов` «цитата из трёх слов» 15-СЦС-45 ТОиР 1000."
@@ -320,6 +347,9 @@ def selftest():
     bracket = " ".join(["слово"] * 15) + " (" + " ".join(["слово"] * 10) + ")."
     assert rules(bracket) == [], check(bracket)
     assert rules("Слово (" + " ".join(["слово"] * 21) + ").") == ["длина"]
+    # Несколько коротких предложений в скобках проверяются отдельно.
+    assert rules("Ответ готов. (" + " ".join(["Проверка завершена."] * 6) + ")") == ["абзац"]
+    assert rules("(" + twenty + ")") == []  # пустой основной текст не добавляет предложение
 
     # Сокращения «т. е.», «т. п.» и инициалы не делят предложение.
     terms = ("Использование терминологии должно быть единообразным, т. е. одни и те же термины "
@@ -327,11 +357,17 @@ def selftest():
     assert len(split_sentences(prepare(terms))) == 1
     developer = "Разработчик — Институт имени Н. Е. Жуковского. Стандарт введен впервые."
     assert len(split_sentences(prepare(developer))) == 2
+    assert rules(" ".join(["См. ГОСТ 2.105."] * 4)) == []
+    assert rules(" ".join(["См. ГОСТ 2.105."] * 7)) == ["абзац"]
+    for abbreviation in ("рис", "табл", "стр", "разд", "прил"):
+        assert len(split_sentences(f"См. {abbreviation}. А1. Проверка завершена.")) == 2
 
     # 8.2.6.2: не больше шести предложений в абзаце.
     six = " ".join(["Слово."] * 6)
     assert rules(six) == []
     assert rules(six + " Слово.") == ["абзац"]
+    assert rules(six + " (Копия есть.)") == ["абзац"]
+    assert rules("Ответ готов. (Копия есть (в каталоге проекта).)") == []
 
     # 8.2.3.16: пункт списка не обрывается на союзе.
     assert rules("- для организации перекрестных ссылок на иллюстрации и\n- текст") == ["пункт-списка"]
@@ -344,6 +380,16 @@ def selftest():
 
     # Код, служебный заголовок и таблицы.
     assert rules("```\n" + " ".join(["слово"] * 40) + ".\n```") == []
+    long_code = " ".join(["слово"] * 40) + "."
+    assert rules("````markdown\n```text\n" + long_code + "\n```\n````") == []
+    assert rules("~~~text\n```\n" + long_code + "\n~~~") == []
+    assert rules("````text\n```\n" + long_code + "\n`````\n" + long_code) == ["длина"]
+    assert rules("> ````text\n> ```\n> " + long_code + "\n> ````") == []
+    assert rules("```text\n```still-code\n" + long_code + "\n```") == []
+    inline = " ".join(["слово"] * 19) + " ``echo `code` more words``."
+    assert rules(inline) == []
+    assert rules("слово " + inline) == ["длина"]
+    assert rules("Читайте ``[ссылка](https://example.com)``.") == []
     front = "---\nname: x\ndescription: " + " ".join(["слово"] * 30) + "\n---\nСлово."
     assert rules(front) == []
     table = ("| Пункт | Текст |\n|---|---|\n| 8.2.3.3 | " + " ".join(["слово"] * 19)
