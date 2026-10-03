@@ -1,0 +1,39 @@
+{
+  "name": "asd-ste100-ru-skill",
+  "version": "0.1.0",
+  "description": "Навык для ИИ-агентов: переписывает русский текст на упрощённый технический русский по разделу 8.2 ГОСТ Р 58049—2017.",
+  "author": {
+    "name": "Zinnur Temerbekov"
+  },
+  "homepage": "https://github.com/ztemerbekov/asd-ste100-ru-skill",
+  "repository": "https://github.com/ztemerbekov/asd-ste100-ru-skill",
+  "license": "MIT",
+  "keywords": [
+    "упрощённый технический русский",
+    "УТР",
+    "ГОСТ Р 58049",
+    "ASD-STE100",
+    "controlled-language",
+    "plain-language",
+    "technical-writing",
+    "russian-language"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Упрощённый технический русский",
+    "shortDescription": "Переписать текст на упрощённый технический русский",
+    "longDescription": "Навык для ИИ-агентов: переписывает русский текст на ограниченную версию естественного языка — упрощённый технический русский (УТР, ГОСТ Р 58049—2017, раздел 8.2). Русский аналог ASD-STE100.",
+    "developerName": "Zinnur Temerbekov",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/ztemerbekov/asd-ste100-ru-skill",
+    "defaultPrompt": [
+      "$asd-ste100-ru На базе доработанного по замечаниям экспертизы перевода подготавливается окончательная редакция проекта"
+    ],
+    "composerIcon": "./assets/marketplaces/codex/composer-icon.svg",
+    "logo": "./assets/marketplaces/codex/logo.svg"
+  }
+}

@@ -1,0 +1,9 @@
+interface:
+  display_name: "Упрощённый технический русский"
+  short_description: "Переписать текст на упрощённый технический русский"
+  icon_small: "./assets/icon-small.svg"
+  icon_large: "./assets/icon-large.svg"
+  brand_color: "#24569B"
+  default_prompt: "$asd-ste100-ru На базе доработанного по замечаниям экспертизы перевода подготавливается окончательная редакция проекта"
+policy:
+  allow_implicit_invocation: false
