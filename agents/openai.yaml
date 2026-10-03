@@ -1,0 +1,5 @@
+interface:
+  display_name: "УТР по ГОСТ Р 58049"
+  short_description: "Переписать текст на упрощённый технический русский"
+policy:
+  allow_implicit_invocation: false
