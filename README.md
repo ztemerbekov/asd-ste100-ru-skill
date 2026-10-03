@@ -1,4 +1,4 @@
-# <img src="./assets/logos/logo.svg" alt="" width="40">&nbsp;Упрощённый технический русский
+# <img src="./assets/logos/logo.svg" alt="" width="25">&nbsp;Упрощённый технический русский
 
 [![skills.sh](https://skills.sh/b/ztemerbekov/asd-ste100-ru-skill)](https://skills.sh/ztemerbekov/asd-ste100-ru-skill)
 
