@@ -1,0 +1,20 @@
+{
+  "name": "asd-ste100-ru-skill",
+  "interface": {
+    "displayName": "Упрощённый технический русский"
+  },
+  "plugins": [
+    {
+      "name": "asd-ste100-ru-skill",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/ztemerbekov/asd-ste100-ru-skill.git"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

@@ -2,6 +2,8 @@
 name: asd-ste100-ru
 description: Переписывает русский текст на упрощённый технический русский по разделу 8.2 ГОСТ Р 58049—2017.
 disable-model-invocation: true
+metadata:
+  author: Zinnur Temerbekov
 ---
 
 # Упрощённый технический русский

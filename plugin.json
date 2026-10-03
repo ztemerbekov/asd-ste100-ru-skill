@@ -1,0 +1,22 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "asd-ste100-ru-skill",
+  "version": "0.1.0",
+  "description": "Навык для ИИ-агентов: переписывает русский текст на упрощённый технический русский по разделу 8.2 ГОСТ Р 58049—2017.",
+  "author": {
+    "name": "Zinnur Temerbekov"
+  },
+  "homepage": "https://github.com/ztemerbekov/asd-ste100-ru-skill",
+  "repository": "https://github.com/ztemerbekov/asd-ste100-ru-skill",
+  "license": "MIT",
+  "keywords": [
+    "упрощённый технический русский",
+    "УТР",
+    "ГОСТ Р 58049",
+    "ASD-STE100",
+    "controlled-language",
+    "plain-language",
+    "technical-writing",
+    "russian-language"
+  ]
+}

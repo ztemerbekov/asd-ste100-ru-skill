@@ -1,0 +1,32 @@
+{
+  "name": "asd-ste100-ru-skill",
+  "owner": {
+    "name": "Zinnur Temerbekov"
+  },
+  "metadata": {
+    "description": "Навык для ИИ-агентов: переписывает русский текст на упрощённый технический русский по разделу 8.2 ГОСТ Р 58049—2017."
+  },
+  "plugins": [
+    {
+      "name": "asd-ste100-ru-skill",
+      "displayName": "Упрощённый технический русский",
+      "description": "Навык для ИИ-агентов: переписывает русский текст на упрощённый технический русский по разделу 8.2 ГОСТ Р 58049—2017.",
+      "category": "productivity",
+      "keywords": [
+        "упрощённый технический русский",
+        "УТР",
+        "ГОСТ Р 58049",
+        "ASD-STE100",
+        "controlled-language",
+        "plain-language",
+        "technical-writing",
+        "russian-language"
+      ],
+      "source": "./skills",
+      "strict": false,
+      "skills": [
+        "./asd-ste100-ru"
+      ]
+    }
+  ]
+}
